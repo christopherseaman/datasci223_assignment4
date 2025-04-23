@@ -9,13 +9,8 @@ This notebook implements advanced analysis techniques for physiological time ser
 This section sets up the plotting style for consistent visualizations throughout the notebook.
 
 ```python
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy import stats, signal
-import pywt
-import os
 
 # Set plotting style
 plt.style.use('seaborn')
@@ -39,6 +34,10 @@ def extract_time_domain_features(data, window_size=60):
     Returns:
         pd.DataFrame: DataFrame with time-domain features
     """
+    import pandas as pd
+    import numpy as np
+    from scipy import stats
+    
     # Make a copy of the data
     df = data.copy()
     
@@ -140,6 +139,9 @@ def analyze_frequency_components(data, sampling_rate, window_size=60):
     Returns:
         dict: Dictionary containing frequency components and power spectrum
     """
+    import numpy as np
+    from scipy import signal
+    
     results = {}
     signals = ['heart_rate', 'eda', 'temperature']
     
@@ -207,6 +209,9 @@ def analyze_time_frequency_features(data, sampling_rate, window_size=60):
     Returns:
         dict: Dictionary containing wavelet coefficients and derived features
     """
+    import numpy as np
+    import pywt
+    
     results = {}
     signals = ['heart_rate', 'eda', 'temperature']
     

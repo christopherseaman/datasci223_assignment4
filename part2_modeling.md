@@ -9,14 +9,8 @@ This notebook implements functions for time series feature extraction and ARIMA 
 This section sets up the plotting style for consistent visualizations throughout the notebook.
 
 ```python
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from scipy import stats
-from statsmodels.tsa.arima.model import ARIMA
-from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
-import os
 
 # Set plotting style
 plt.style.use('seaborn')
@@ -40,6 +34,9 @@ def extract_time_series_features(data, window_size=60):
     Returns:
         pd.DataFrame: DataFrame with extracted features
     """
+    import pandas as pd
+    import numpy as np
+    
     # Make a copy of the data
     df = data.copy()
     
@@ -107,6 +104,14 @@ def build_arima_model(series, order=(1,1,1), output_dir=None):
     Returns:
         statsmodels.tsa.arima.model.ARIMA: The ARIMA model
     """
+    import os
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    from scipy import stats
+    from statsmodels.tsa.arima.model import ARIMA
+    from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+    
     # Create output directory if specified
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
