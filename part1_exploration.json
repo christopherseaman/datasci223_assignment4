@@ -1,0 +1,64 @@
+def load_data(data_dir):
+    """Load physiological data from CSV files.
+    
+    Args:
+        data_dir (str): Path to data directory
+        
+    Returns:
+        pd.DataFrame: Combined data with columns for timestamp, heart_rate, eda, temperature,
+                     subject_id, and session
+    """
+    import os
+    import glob
+    import pandas as pd
+    
+    # Create empty DataFrame with required columns
+    df = pd.DataFrame(columns=['timestamp', 'heart_rate', 'eda', 'temperature', 'subject_id', 'session'])
+    
+    # Get list of subject directories
+    subject_dirs = glob.glob(os.path.join(data_dir, 'S*'))
+    if not subject_dirs:
+        return df
+    
+    dfs = []
+    for subject_dir in subject_dirs:
+        subject_id = os.path.basename(subject_dir)
+        
+        # Get session directories for this subject
+        session_dirs = glob.glob(os.path.join(subject_dir, '*'))
+        
+        for session_dir in session_dirs:
+            session = os.path.basename(session_dir)
+            
+            try:
+                # Load data files
+                hr_file = glob.glob(os.path.join(session_dir, '*HR.csv'))[0]
+                eda_file = glob.glob(os.path.join(session_dir, '*EDA.csv'))[0]
+                temp_file = glob.glob(os.path.join(session_dir, '*TEMP.csv'))[0]
+                
+                # Read CSVs
+                hr_df = pd.read_csv(hr_file)
+                eda_df = pd.read_csv(eda_file) 
+                temp_df = pd.read_csv(temp_file)
+                
+                # Combine data
+                df = pd.DataFrame({
+                    'timestamp': pd.to_datetime(hr_df['timestamp']),
+                    'heart_rate': hr_df['heart_rate'],
+                    'eda': eda_df['eda'],
+                    'temperature': temp_df['temperature'],
+                    'subject_id': subject_id,
+                    'session': session
+                })
+                dfs.append(df)
+                
+            except (IndexError, KeyError) as e:
+                print(f"Error loading data for {subject_id} {session}: {str(e)}")
+                continue
+    
+    if not dfs:
+        return pd.DataFrame(columns=['timestamp', 'heart_rate', 'eda', 'temperature', 'subject_id', 'session'])
+        
+    # Combine all data
+    combined_df = pd.concat(dfs, ignore_index=True)
+    return combined_df 

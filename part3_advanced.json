@@ -1,0 +1,112 @@
+def extract_time_domain_features(data, window_size=300):
+    """Extract time-domain features from physiological signals.
+    
+    Args:
+        data (pd.DataFrame): Input data with columns for heart_rate, eda, temperature
+        window_size (int): Window size in samples for rolling calculations
+        
+    Returns:
+        pd.DataFrame: Time domain features for each signal
+    """
+    import numpy as np
+    import pandas as pd
+    from scipy import stats
+    
+    features = pd.DataFrame()
+    
+    for signal in ['heart_rate', 'eda', 'temperature']:
+        # Calculate rolling statistics
+        rolling = data[signal].rolling(window=window_size)
+        
+        features[f'{signal}_mean'] = rolling.mean()
+        features[f'{signal}_std'] = rolling.std()
+        features[f'{signal}_min'] = rolling.min()
+        features[f'{signal}_max'] = rolling.max()
+        features[f'{signal}_skew'] = rolling.apply(stats.skew)
+        features[f'{signal}_kurtosis'] = rolling.apply(stats.kurtosis)
+        
+        # Calculate rate of change
+        features[f'{signal}_roc'] = data[signal].diff() / data.index.to_series().diff().dt.total_seconds()
+        
+    return features
+
+def analyze_frequency_components(data, sampling_rate=1.0, window_size=300):
+    """Perform frequency-domain analysis using Welch's method.
+    
+    Args:
+        data (pd.DataFrame): Input data with columns for heart_rate, eda, temperature
+        sampling_rate (float): Sampling rate in Hz
+        window_size (int): Window size for FFT calculation
+        
+    Returns:
+        dict: Frequency components and power spectrum for each signal
+    """
+    import numpy as np
+    from scipy import signal
+    
+    results = {}
+    
+    # Define frequency bands
+    freq_bands = {
+        'vlf': (0.003, 0.04),  # Very low frequency
+        'lf': (0.04, 0.15),    # Low frequency
+        'hf': (0.15, 0.4)      # High frequency
+    }
+    
+    for signal_name in ['heart_rate', 'eda', 'temperature']:
+        signal_data = data[signal_name].values
+        
+        # Calculate power spectral density using Welch's method
+        frequencies, psd = signal.welch(signal_data, fs=sampling_rate, nperseg=window_size)
+        
+        # Calculate power in each frequency band
+        band_powers = {}
+        for band_name, (low_freq, high_freq) in freq_bands.items():
+            mask = (frequencies >= low_freq) & (frequencies <= high_freq)
+            band_powers[band_name] = np.trapz(psd[mask], frequencies[mask])
+        
+        results[signal_name] = {
+            'frequencies': frequencies,
+            'psd': psd,
+            'band_powers': band_powers
+        }
+    
+    return results
+
+def analyze_time_frequency_features(data, sampling_rate=1.0, window_size=300):
+    """Perform wavelet-based time-frequency analysis.
+    
+    Args:
+        data (pd.DataFrame): Input data with columns for heart_rate, eda, temperature
+        sampling_rate (float): Sampling rate in Hz
+        window_size (int): Window size for wavelet transform
+        
+    Returns:
+        dict: Wavelet coefficients and derived features for each signal
+    """
+    import numpy as np
+    import pywt
+    
+    results = {}
+    wavelet = 'db4'  # Daubechies 4 wavelet
+    
+    for signal_name in ['heart_rate', 'eda', 'temperature']:
+        signal_data = data[signal_name].values
+        
+        # Perform continuous wavelet transform
+        scales = np.arange(1, window_size)
+        coeffs, freqs = pywt.cwt(signal_data, scales, wavelet)
+        
+        # Calculate wavelet-based features
+        abs_coeffs = np.abs(coeffs)
+        mean_power = np.mean(abs_coeffs, axis=1)
+        max_power = np.max(abs_coeffs, axis=1)
+        
+        results[signal_name] = {
+            'coefficients': coeffs,
+            'frequencies': freqs,
+            'mean_power': mean_power,
+            'max_power': max_power
+        }
+    
+    return results 
