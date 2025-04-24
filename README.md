@@ -91,40 +91,48 @@ In this part, you will implement the following functions in `part3_advanced.ipyn
    - For each window, calculate:
      - Basic statistics: mean, std, min, max
      - Heart rate statistics: mean HR, std HR
-     - Beat-to-beat variability: RMSSD, SDNN, pNN50
+     - One additional Heart Rate Variability (HRV) metric:
+       - RMSSD (Root Mean Square of Successive Differences)
+       - SDNN (Standard Deviation of NN intervals)
+       - pNN50: Percentage of successive RR intervals that differ by more than 50ms
    - Returns a DataFrame with the extracted features
    - Feature names should be descriptive and include units where appropriate
 
 2. `analyze_frequency_components(data, sampling_rate, window_size=60)`:
-   - Performs frequency-domain analysis on the signals
-   - For each window, calculate:
-     - Power spectral density (PSD) using Welch's method
-     - Power in physiologically relevant frequency bands:
-       - Very Low Frequency (VLF): 0.003-0.04 Hz
-       - Low Frequency (LF): 0.04-0.15 Hz
-       - High Frequency (HF): 0.15-0.4 Hz
-     - LF/HF ratio as a measure of autonomic balance
+   - Performs basic frequency analysis using Fast Fourier Transform (FFT)
+   - For each signal, calculate:
+     - Power spectrum using FFT
+     - Dominant frequency components
    - Returns a dictionary containing:
      - 'frequencies': array of frequency values
      - 'power': array of power spectrum values
-     - 'bands': dictionary of power in different frequency bands
-   - Saves the frequency analysis results to the output directory:
-     - File name should include 'fft'
-     - Supported formats: .npz, .npy, or .csv
+     - 'dominant_freq': dominant frequency for each signal
 
-3. `analyze_time_frequency_features(data, sampling_rate, window_size=60)`:
-   - Applies wavelet transform to analyze time-frequency features
-   - For each window, calculate:
-     - Continuous wavelet transform coefficients
-     - Time-frequency energy distribution
-     - Dominant frequency components over time
-   - Returns a dictionary containing:
-     - 'scales': array of wavelet scales
-     - 'coefficients': array of wavelet coefficients
-     - 'time_frequency_energy': 2D array of energy distribution
-   - Saves the time-frequency analysis results to the output directory:
-     - File name should include 'wavelet'
-     - Supported formats: .npz, .npy, or .csv
+### Heart Rate Variability (HRV) Metrics
+
+The HRV metrics used in this assignment are important indicators of autonomic nervous system function:
+
+1. **RMSSD (Root Mean Square of Successive Differences)**
+   ```math
+   RMSSD = \sqrt{\frac{1}{N-1}\sum_{i=1}^{N-1}(RR_{i+1} - RR_i)^2}
+   ```
+   - Reflects short-term heart rate variability
+   - Higher values indicate better parasympathetic function
+
+2. **SDNN (Standard Deviation of NN Intervals)**
+   ```math
+   SDNN = \sqrt{\frac{1}{N-1}\sum_{i=1}^{N}(RR_i - \overline{RR})^2}
+   ```
+   - Reflects overall heart rate variability
+   - Influenced by both sympathetic and parasympathetic activity
+
+3. **pNN50 (Percentage of NN50)**
+   ```math
+   pNN50 = \frac{NN50}{N-1} \times 100\%
+   ```
+   - Calculation: Percentage of successive RR intervals that differ by more than 50ms
+   - Strong indicator of parasympathetic activity
+   - Normal values typically range from 5% to 25% in healthy adults
 
 ## Grading Criteria
 
